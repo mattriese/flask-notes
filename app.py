@@ -5,6 +5,7 @@ from flask import Flask, render_template, redirect, flash, jsonify
 from flask_debugtoolbar import DebugToolbarExtension
 
 from models import db, connect_db, User
+from forms import RegisterForm
 # from forms import AddPetForm, EditPetForm
 
 app = Flask(__name__)
@@ -28,5 +29,16 @@ def redirect_to_register():
 
 @app.route('/register', methods=["GET", "POST"])
 def register_user():
-    """handle register user on post or render register user form""" 
-    
+    """handle register user on post or render register user form"""
+
+    form = RegisterForm()
+
+    if form.validate_on_submit()
+
+        username = form.username.data
+        password = form.password.data
+        email = form.email.data
+        first_name = form.first_name.data
+        last_name = form.last_name.data
+
+        user = User

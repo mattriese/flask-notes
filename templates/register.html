@@ -1,15 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
+	{% extends "base.html" %}
 
-<body>
+	{% block title %} Register new user {% endblock %}
 
-</body>
+	{% block content %}
 
-</html>
+	<form action="/register" method="POST" id="register_form">
+	{{ form.hidden_tag() }}
+	{% for field in form if field.widget.input_type != 'hidden' %}
+	  <div class='form-group'>
+		{{ field.label }}
+		{{ field(class="form-control") }}
+		<span>
+		  {% if field.errors %}
+			{% for error in field.errors %}
+			  <b class="text-danger">{{ error }}</b>
+			{% endfor %}
+		  {% endif %}
+		</span>
+	  </div>
+
+	{% endfor %}
+	</form>
+
+	{% endblock %}
