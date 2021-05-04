@@ -4,7 +4,7 @@ from flask import Flask, render_template, redirect, flash, jsonify, session
 
 from flask_debugtoolbar import DebugToolbarExtension
 
-from models import db, connect_db, User
+from models import db, connect_db, User, Note
 from forms import RegisterForm, LoginForm
 # from forms import AddPetForm, EditPetForm
 
@@ -97,14 +97,10 @@ def show_secret_page(username):
         flash("You must be logged in to view!")
         return redirect("/")
 
-        # alternatively, can return HTTP Unauthorized status:
-        #
-        # from werkzeug.exceptions import Unauthorized
-        # raise Unauthorized()
-
     else:
         user = User.query.filter_by(username=username).first()
-        return render_template("secret.html", user=user)
+        notes = Note.query.all()
+        return render_template("secret.html", user=user, notes=notes)
 
 
 @app.route("/logout")
@@ -113,3 +109,29 @@ def logout_user():
 
     session.pop("username", None)
     return redirect("/")
+
+
+@app.route("/users/<username>/delete", methods=["POST"])
+def delete_user(username):
+    """delete user from the database and delete all notes
+    Redirect to / """
+    
+    if "username" not in session:
+        flash("You must be logged in to delete!")
+        return redirect("/")
+    else:
+
+        current_user = User.query.get_or_404(username)
+        notes_from_user = current_user.notes
+
+        for note in notes_from_user:
+            db.session.delete(note)
+
+        db.session.delete(current_user)
+        db.session.commit()
+
+    return redirect('/')
+
+
+
+

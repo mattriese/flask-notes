@@ -1,27 +1,26 @@
+{% extends "base.html" %}
 
-	{% extends "base.html" %}
+{% block title %} Register new user {% endblock %}
 
-	{% block title %} Register new user {% endblock %}
+{% block content %}
 
-	{% block content %}
+<form action="/register" method="POST" id="register_form">
+    {{ form.hidden_tag() }}
+    {% for field in form if field.widget.input_type != 'hidden' %}
+    <div class='form-group'>
+        {{ field.label }}
+        {{ field(class="form-control") }}
+        <span>
+            {% if field.errors %}
+            {% for error in field.errors %}
+            <b class="text-danger">{{ error }}</b>
+            {% endfor %}
+            {% endif %}
+        </span>
+    </div>
 
-	<form action="/register" method="POST" id="register_form">
-	{{ form.hidden_tag() }}
-	{% for field in form if field.widget.input_type != 'hidden' %}
-	  <div class='form-group'>
-		{{ field.label }}
-		{{ field(class="form-control") }}
-		<span>
-		  {% if field.errors %}
-			{% for error in field.errors %}
-			  <b class="text-danger">{{ error }}</b>
-			{% endfor %}
-		  {% endif %}
-		</span>
-	  </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
 
-	{% endfor %}
-	  <button type="submit" class="btn btn-primary">Submit</button>
-	</form>
-
-	{% endblock %}
+{% endblock %}
