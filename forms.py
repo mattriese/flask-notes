@@ -9,9 +9,9 @@ class RegisterForm(FlaskForm):
     username = StringField("Enter Username",
                            validators=[InputRequired()])
     password = PasswordField("Enter a password",
-                             validators=[InputRequired()])
+                             validators=[InputRequired()]) # add length validator
     email = StringField("Enter your email",
-                        validators=[InputRequired()])
+                        validators=[InputRequired()]) # add email validator and EmailField
     first_name = StringField("Enter your first name",
                              validators=[InputRequired()])
     last_name = StringField("Enter your last name",
@@ -26,3 +26,14 @@ class LoginForm(FlaskForm):
     password = PasswordField("Enter a password",
                              validators=[InputRequired()])
 
+
+class AddNoteForm(FlaskForm):
+    """Form to add a new note"""
+
+    title = StringField("Title:",
+                        validators=[InputRequired()])
+    content = TextAreaField("Note:",
+                            validators=[InputRequired()])
+
+class DeleteForm(FlaskForm):
+    """deleteform intetnionally left blank """

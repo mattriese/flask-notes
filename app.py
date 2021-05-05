@@ -5,7 +5,7 @@ from flask import Flask, render_template, redirect, flash, jsonify, session
 from flask_debugtoolbar import DebugToolbarExtension
 
 from models import db, connect_db, User, Note
-from forms import RegisterForm, LoginForm
+from forms import RegisterForm, LoginForm, AddNoteForm
 # from forms import AddPetForm, EditPetForm
 
 app = Flask(__name__)
@@ -51,17 +51,17 @@ def register_user():
             db.session.commit()
             flash("Registration successful!")
 
-            user = User.authenticate(username, password)
+            user = User.authenticate(username, password) # don't need to call this method, just add them to the session
 
             if user:
-                session["username"] = user.username
-                return redirect(f"/users/{username}")
+                session["username"] = user.username  #just check for key of username in session.
+                return redirect(f"/users/{username}") # could put this at the very top, less nested if/else
             else:
-                flash("Authentication failed")
+                flash("Authentication failed") # won't need this else clause
                 return redirect("/register")
 
         else:
-            flash("Username/email Taken")
+            flash("Username/email Taken") # move this up to 46
             return render_template("register.html", form=form)
     else:
         return render_template('register.html', form=form)
@@ -84,6 +84,7 @@ def login_user():
             return redirect(f"/users/{username}")
         else:
             form.username.errors = ["Bad name/password"]
+            return render_template('login.html', form=form) # added this for failed login
     else:
         return render_template('login.html', form=form)
 
@@ -93,11 +94,11 @@ def login_user():
 def show_secret_page(username):
     """Example hidden page for logged-in users only."""
 
-    if "username" not in session:
+    if "username" not in session or username != session['username']:
         flash("You must be logged in to view!")
         return redirect("/")
 
-    else:
+    else:     # don't need else
         user = User.query.filter_by(username=username).first()
         notes = Note.query.all()
         return render_template("secret.html", user=user, notes=notes)
@@ -111,27 +112,90 @@ def logout_user():
     return redirect("/")
 
 
-@app.route("/users/<username>/delete", methods=["POST"])
+@app.route("/users/<username>/delete", methods=["POST"]) # need csfrf so use blank form, also in logout()
 def delete_user(username):
     """delete user from the database and delete all notes
     Redirect to / """
-    
-    if "username" not in session:
+
+    if "username" not in session or username != session['username']: #failling first here good
         flash("You must be logged in to delete!")
         return redirect("/")
-    else:
-
+    else:    #else not needed
         current_user = User.query.get_or_404(username)
+        #notes_from_user = Note.query.filter_by(owner=username).delete() # this could replace for loop (126-129)
         notes_from_user = current_user.notes
 
         for note in notes_from_user:
             db.session.delete(note)
 
         db.session.delete(current_user)
-        db.session.commit()
+        db.session.commit() # pop off session
 
     return redirect('/')
 
 
+@app.route("/users/<username>/notes/add", methods=["GET", "POST"])
+def add_note_page(username):
+    """display add new note page and submit note if post request"""
+
+    if "username" not in session or username != session['username']:
+        flash("You must be logged in to view!")
+        return redirect("/")
+
+    form = AddNoteForm()
+    if form.validate_on_submit():
+        title = form.title.data
+        content = form.content.data
+        owner = username
+        note = Note(title=title, content=content, owner=owner)
+
+        db.session.add(note)
+        db.session.commit()
+        flash("Note added successfully!")
+
+        return redirect(f"/users/{username}")
+
+    else:
+        return render_template("add_note.html", form=form, username=username)
 
 
+@app.route("/notes/<note_id>/update", methods=["GET", "POST"])
+def edit_note_page(note_id):
+    """display edit note page and submit note edit if post request"""
+
+    note = Note.query.get_or_404(note_id)
+    username = note.user.username #could use note.owner
+    if "username" not in session or username != session['username']:
+        flash("You must be logged in to edit!")
+        return redirect("/")
+
+    form = AddNoteForm(obj=note)
+
+    if form.validate_on_submit():
+        note.title = form.title.data
+        note.content = form.content.data
+
+        db.session.commit()
+        flash("Note edited successfully!")
+        print("note.user.username=, ",  note.user.username)
+        return redirect(f"/users/{note.user.username}")
+
+    else:
+        return render_template("edit_note.html", form=form, note=note)
+
+
+@app.route("/notes/<note_id>/delete", methods=["POST"])
+def delete_note(note_id):
+    """delete note from the database Redirect to /users/<username> """
+
+    note = Note.query.get_or_404(note_id)
+    username = note.user.username #note.owner
+
+    if "username" not in session or username != session['username']:
+        flash("You must be logged in to delete!")
+        return redirect("/")
+    else:
+        db.session.delete(note)
+        db.session.commit()
+
+    return redirect(f"/users/{username}")

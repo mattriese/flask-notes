@@ -18,7 +18,6 @@ class User(db.Model):
 
     notes = db.relationship('Note', backref='user')
 
-
     @classmethod
     def register(cls, username, password, email, first_name, last_name):
         """Register user w/hashed password & return user."""
@@ -47,13 +46,13 @@ class User(db.Model):
 
 
 class Note(db.Model):
-    """notes""" 
+    """notes"""
     __tablename__ = "notes"
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    owner = db.Column(db.Text, db.ForeignKey('users.username'))
+    owner = db.Column(db.Text, db.ForeignKey('users.username'), nullable=False)
 
 
 def connect_db(app):
